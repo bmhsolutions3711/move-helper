@@ -357,6 +357,7 @@ function voiceDictate(btn, inputId) {
   if (activeBtn === btn) { stopDictation(); return; }
   if (activeRecognition) stopDictation();
   const input = document.getElementById(inputId);
+  if (!input) return;
   const rec = new SR();
   rec.continuous = false;
   rec.interimResults = true;

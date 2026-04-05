@@ -444,11 +444,10 @@ let activeBtn = null;
 function voiceDictate(btn, inputId) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { toast('Voice not supported in this browser'); return; }
-  // If already recording this input, stop
   if (activeBtn === btn) { stopDictation(); return; }
-  // Stop any existing
   if (activeRecognition) stopDictation();
   const input = document.getElementById(inputId);
+  if (!input) return;
   const rec = new SR();
   rec.continuous = false;
   rec.interimResults = true;
