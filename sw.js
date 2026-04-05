@@ -1,9 +1,11 @@
-const CACHE_NAME = 'move-helper-v4';
+const CACHE_NAME = 'move-helper-v5';
 const ASSETS = [
   '/move-helper/index.html',
   '/move-helper/timeline.html',
   '/move-helper/boxes.html',
   '/move-helper/budget.html',
+  '/move-helper/shared.css',
+  '/move-helper/shared.js',
   '/move-helper/manifest.json',
   '/move-helper/icons/icon-192.png',
   'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js',

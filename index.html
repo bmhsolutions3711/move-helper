@@ -10,43 +10,20 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <title>Move Helper</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --blue:#2563eb;--blue-dark:#1e40af;--blue-light:#3b82f6;--blue-pale:#93c5fd;
-  --coral:#f97316;--coral-dark:#ea580c;--coral-light:#fb923c;
-  --bg:#0f1720;--bg-card:#1a2535;--bg-card-hover:#223344;
-  --text:#e8edf2;--text-muted:#8899aa;
-  --success:#22c55e;--danger:#ef4444;
-  --radius:14px;--radius-sm:8px;
-}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;padding:0 16px 120px;min-height:100vh;-webkit-tap-highlight-color:transparent}
-h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);margin:20px 0 4px}
-.subtitle{text-align:center;color:var(--text-muted);font-size:.85rem;margin-bottom:16px}
-
 /* Overall progress */
 .overall-progress{background:var(--bg-card);border-radius:var(--radius);padding:16px;margin-bottom:16px}
 .overall-progress .label{display:flex;justify-content:space-between;font-size:.85rem;color:var(--text-muted);margin-bottom:6px}
 .progress-bar{height:10px;background:#1e293b;border-radius:5px;overflow:hidden}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--coral));border-radius:5px;transition:width .3s}
-
 /* Project selector */
 .project-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
 .project-row select{flex:1;background:var(--bg-card);color:var(--text);border:1px solid #334155;border-radius:var(--radius-sm);padding:10px 12px;font-size:.95rem;font-family:inherit}
-.btn{padding:10px 16px;border:none;border-radius:var(--radius-sm);font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .15s}
-.btn-blue{background:var(--blue);color:#fff}
-.btn-blue:active{background:var(--blue-dark)}
-.btn-coral{background:var(--coral);color:#fff}
-.btn-coral:active{background:var(--coral-dark)}
-.btn-outline{background:transparent;border:1.5px solid var(--blue);color:var(--blue-pale)}
-.btn-danger{background:var(--danger);color:#fff}
-.btn-sm{padding:6px 12px;font-size:.8rem}
-
 /* Project progress */
 .project-progress{margin-bottom:12px}
 .project-progress .label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-muted);margin-bottom:4px}
 .project-progress .progress-bar{height:6px}
-
 /* Task list */
 .task-list{list-style:none}
 .task-item{display:flex;align-items:center;gap:10px;background:var(--bg-card);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;transition:all .15s}
@@ -59,45 +36,13 @@ h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);mar
 .task-notes{font-size:.75rem;color:var(--text-muted);margin-top:2px}
 .task-delete{background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:4px}
 .task-delete:active{color:var(--danger)}
-
 /* Add task */
 .add-task-row{display:flex;gap:8px;margin-top:8px;margin-bottom:12px}
 .add-task-row input{flex:1;background:var(--bg-card);color:var(--text);border:1px solid #334155;border-radius:var(--radius-sm);padding:10px 12px;font-size:.95rem;font-family:inherit}
 .add-task-row input::placeholder{color:var(--text-muted)}
-
-/* Empty state */
-.empty-state{text-align:center;color:var(--text-muted);padding:40px 20px;font-size:.9rem}
-
-/* Modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.active{display:flex}
-.modal{background:var(--bg-card);border-radius:var(--radius);padding:24px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
-.modal h2{font-size:1.2rem;margin-bottom:16px;color:var(--blue-pale)}
-.modal input,.modal textarea{width:100%;background:#0f1720;color:var(--text);border:1px solid #334155;border-radius:var(--radius-sm);padding:10px 12px;font-size:.95rem;font-family:inherit;margin-bottom:12px}
-.modal textarea{min-height:60px;resize:vertical}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
-
 /* Project list in modal */
 .project-list-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1e293b}
 .project-list-item:last-child{border:none}
-
-/* Bottom nav */
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#0d131b;border-top:1px solid #1e293b;display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);z-index:50}
-.bottom-nav a{flex:1;text-align:center;text-decoration:none;color:var(--text-muted);font-size:.7rem;font-weight:600;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .15s}
-.bottom-nav a.active{color:var(--blue-pale)}
-.bottom-nav a .nav-icon{font-size:1.3rem}
-
-/* Toast */
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--success);color:#fff;padding:10px 20px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
-.toast.show{opacity:1}
-
-/* Voice mic button */
-.mic-btn{width:36px;height:36px;border-radius:50%;border:2px solid var(--blue);background:var(--bg-card);color:var(--blue-pale);font-size:1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.mic-btn:active{background:var(--blue-dark)}
-.mic-btn.recording{border-color:var(--danger);background:rgba(239,68,68,.15);color:#fca5a5;animation:mic-pulse 1.2s ease-in-out infinite}
-@keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.3)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
-.input-with-mic{display:flex;gap:6px;align-items:center;flex:1}
-.input-with-mic input,.input-with-mic textarea{flex:1}
 </style>
 </head>
 <body>
@@ -168,6 +113,13 @@ h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);mar
   </div>
 </div>
 
+<!-- Data Sync -->
+<div style="text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid #1e293b">
+  <button class="btn btn-outline btn-sm" onclick="exportAllData()" style="margin-right:6px">Export Data</button>
+  <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">Import Data</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this.files[0])">
+</div>
+
 <div class="toast" id="toast"></div>
 
 <nav class="bottom-nav">
@@ -178,12 +130,10 @@ h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);mar
 </nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<script src="shared.js"></script>
 <script>
 let db;
 let editingTaskId = null;
-const IDB_NAME = 'MoveHelperStore';
-const IDB_STORE = 'meta';
-const DB_KEY = 'move-helper-db';
 
 const DEFAULT_PROJECTS = ['Kitchen','Living Room','Master Bedroom','Bathroom(s)','Garage / Storage','Utilities & Address Changes','Moving Day Tasks'];
 
@@ -394,85 +344,8 @@ function deleteProject(id) {
   toast('Project deleted');
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
 // Enter key for add task
 document.getElementById('newTaskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
-
-// IndexedDB persistence
-function openIDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(IDB_NAME, 2);
-    req.onupgradeneeded = (e) => {
-      const idb = req.result;
-      if (!idb.objectStoreNames.contains(IDB_STORE)) idb.createObjectStore(IDB_STORE);
-      if (!idb.objectStoreNames.contains('blobs')) idb.createObjectStore('blobs');
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-async function persistDB() {
-  const data = db.export();
-  const idb = await openIDB();
-  const tx = idb.transaction(IDB_STORE, 'readwrite');
-  tx.objectStore(IDB_STORE).put(data.buffer, DB_KEY);
-}
-async function loadFromIDB() {
-  try {
-    const idb = await openIDB();
-    return new Promise((resolve) => {
-      const tx = idb.transaction(IDB_STORE, 'readonly');
-      const req = tx.objectStore(IDB_STORE).get(DB_KEY);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => resolve(null);
-    });
-  } catch(e) { return null; }
-}
-
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 1500);
-}
-
-// Voice dictation
-let activeRecognition = null;
-let activeBtn = null;
-function voiceDictate(btn, inputId) {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { toast('Voice not supported in this browser'); return; }
-  if (activeBtn === btn) { stopDictation(); return; }
-  if (activeRecognition) stopDictation();
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  const rec = new SR();
-  rec.continuous = false;
-  rec.interimResults = true;
-  rec.lang = 'en-US';
-  const startVal = input.value;
-  btn.classList.add('recording');
-  activeRecognition = rec;
-  activeBtn = btn;
-  rec.onresult = (e) => {
-    const result = e.results[0];
-    const text = result[0].transcript;
-    input.value = startVal + (startVal ? ' ' : '') + text;
-    if (result.isFinal) stopDictation();
-  };
-  rec.onerror = (e) => { if (e.error !== 'aborted' && e.error !== 'no-speech') toast('Voice error: ' + e.error); stopDictation(); };
-  rec.onend = () => { if (activeBtn === btn) stopDictation(); };
-  rec.start();
-}
-function stopDictation() {
-  if (activeRecognition) { try { activeRecognition.stop(); } catch(e){} activeRecognition = null; }
-  if (activeBtn) { activeBtn.classList.remove('recording'); activeBtn = null; }
-}
-
-// Register SW
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
 init();
 </script>

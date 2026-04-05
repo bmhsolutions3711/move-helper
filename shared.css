@@ -1,0 +1,55 @@
+/* Move Helper — Shared Theme */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#2563eb;--blue-dark:#1e40af;--blue-light:#3b82f6;--blue-pale:#93c5fd;
+  --coral:#f97316;--coral-dark:#ea580c;--coral-light:#fb923c;
+  --bg:#0f1720;--bg-card:#1a2535;--bg-card-hover:#223344;
+  --text:#e8edf2;--text-muted:#8899aa;
+  --success:#22c55e;--danger:#ef4444;
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;padding:0 16px 120px;min-height:100vh;-webkit-tap-highlight-color:transparent}
+h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);margin:20px 0 4px}
+.subtitle{text-align:center;color:var(--text-muted);font-size:.85rem;margin-bottom:16px}
+
+/* Buttons */
+.btn{padding:10px 16px;border:none;border-radius:var(--radius-sm);font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .15s}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-blue:active{background:var(--blue-dark)}
+.btn-coral{background:var(--coral);color:#fff}
+.btn-coral:active{background:var(--coral-dark)}
+.btn-outline{background:transparent;border:1.5px solid var(--blue);color:var(--blue-pale)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+
+/* Empty state */
+.empty-state{text-align:center;color:var(--text-muted);padding:40px 20px;font-size:.9rem}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg-card);border-radius:var(--radius);padding:24px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
+.modal h2{font-size:1.2rem;margin-bottom:16px;color:var(--blue-pale)}
+.modal input,.modal select,.modal textarea{width:100%;background:#0f1720;color:var(--text);border:1px solid #334155;border-radius:var(--radius-sm);padding:10px 12px;font-size:.95rem;font-family:inherit;margin-bottom:12px}
+.modal textarea{min-height:60px;resize:vertical}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:.8rem;color:var(--text-muted);margin-bottom:4px;font-weight:500}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#0d131b;border-top:1px solid #1e293b;display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);z-index:50}
+.bottom-nav a{flex:1;text-align:center;text-decoration:none;color:var(--text-muted);font-size:.7rem;font-weight:600;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .15s}
+.bottom-nav a.active{color:var(--blue-pale)}
+.bottom-nav a .nav-icon{font-size:1.3rem}
+
+/* Toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--success);color:#fff;padding:10px 20px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1}
+
+/* Voice mic button */
+.mic-btn{width:36px;height:36px;border-radius:50%;border:2px solid var(--blue);background:var(--bg-card);color:var(--blue-pale);font-size:1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mic-btn:active{background:var(--blue-dark)}
+.mic-btn.recording{border-color:var(--danger);background:rgba(239,68,68,.15);color:#fca5a5;animation:mic-pulse 1.2s ease-in-out infinite}
+@keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.3)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
+.input-with-mic{display:flex;gap:6px;align-items:center;flex:1}
+.input-with-mic input,.input-with-mic textarea{flex:1}
