@@ -90,6 +90,14 @@ h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);mar
 
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--success);color:#fff;padding:10px 20px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
 .toast.show{opacity:1}
+
+/* Voice mic button */
+.mic-btn{width:36px;height:36px;border-radius:50%;border:2px solid var(--blue);background:var(--bg-card);color:var(--blue-pale);font-size:1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mic-btn:active{background:var(--blue-dark)}
+.mic-btn.recording{border-color:var(--danger);background:rgba(239,68,68,.15);color:#fca5a5;animation:mic-pulse 1.2s ease-in-out infinite}
+@keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.3)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
+.input-with-mic{display:flex;gap:6px;align-items:center}
+.input-with-mic input,.input-with-mic textarea{flex:1}
 </style>
 </head>
 <body>
@@ -117,7 +125,10 @@ h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);mar
     <h2 id="modalTitle">Add Event</h2>
     <div class="form-group">
       <label>Title</label>
-      <input type="text" id="eventTitleInput" placeholder="What needs to happen?">
+      <div class="input-with-mic">
+        <input type="text" id="eventTitleInput" placeholder="What needs to happen?">
+        <button class="mic-btn" onclick="voiceDictate(this,'eventTitleInput')">&#127908;</button>
+      </div>
     </div>
     <div class="form-group">
       <label>Date</label>
@@ -135,7 +146,10 @@ h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);mar
     </div>
     <div class="form-group">
       <label>Notes</label>
-      <textarea id="eventNotesInput" placeholder="Optional details..."></textarea>
+      <div class="input-with-mic">
+        <textarea id="eventNotesInput" placeholder="Optional details..."></textarea>
+        <button class="mic-btn" onclick="voiceDictate(this,'eventNotesInput')">&#127908;</button>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" onclick="closeModal('eventModal')">Cancel</button>
@@ -332,6 +346,38 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+// Voice dictation
+let activeRecognition = null;
+let activeBtn = null;
+function voiceDictate(btn, inputId) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Voice not supported in this browser'); return; }
+  if (activeBtn === btn) { stopDictation(); return; }
+  if (activeRecognition) stopDictation();
+  const input = document.getElementById(inputId);
+  const rec = new SR();
+  rec.continuous = false;
+  rec.interimResults = true;
+  rec.lang = 'en-US';
+  const startVal = input.value;
+  btn.classList.add('recording');
+  activeRecognition = rec;
+  activeBtn = btn;
+  rec.onresult = (e) => {
+    const result = e.results[0];
+    const text = result[0].transcript;
+    input.value = startVal + (startVal ? ' ' : '') + text;
+    if (result.isFinal) stopDictation();
+  };
+  rec.onerror = (e) => { if (e.error !== 'aborted' && e.error !== 'no-speech') toast('Voice error: ' + e.error); stopDictation(); };
+  rec.onend = () => { if (activeBtn === btn) stopDictation(); };
+  rec.start();
+}
+function stopDictation() {
+  if (activeRecognition) { try { activeRecognition.stop(); } catch(e){} activeRecognition = null; }
+  if (activeBtn) { activeBtn.classList.remove('recording'); activeBtn = null; }
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
