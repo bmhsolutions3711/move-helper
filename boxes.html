@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Move Helper - Box Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#2563eb;--blue-dark:#1e40af;--blue-light:#3b82f6;--blue-pale:#93c5fd;
+  --coral:#f97316;--coral-dark:#ea580c;--coral-light:#fb923c;
+  --bg:#0f1720;--bg-card:#1a2535;--bg-card-hover:#223344;
+  --text:#e8edf2;--text-muted:#8899aa;
+  --success:#22c55e;--danger:#ef4444;
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;padding:0 16px 120px;min-height:100vh;-webkit-tap-highlight-color:transparent}
+h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);margin:20px 0 4px}
+.subtitle{text-align:center;color:var(--text-muted);font-size:.85rem;margin-bottom:16px}
+
+.btn{padding:10px 16px;border:none;border-radius:var(--radius-sm);font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .15s}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:active{background:var(--blue-dark)}
+.btn-coral{background:var(--coral);color:#fff}.btn-coral:active{background:var(--coral-dark)}
+.btn-outline{background:transparent;border:1.5px solid var(--blue);color:var(--blue-pale)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+
+/* Stats row */
+.stats-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+.stat-chip{flex-shrink:0;padding:6px 12px;border-radius:20px;font-size:.75rem;font-weight:600;background:var(--bg-card);color:var(--text-muted);cursor:pointer;border:1.5px solid transparent;white-space:nowrap;transition:all .15s}
+.stat-chip.active{border-color:var(--blue);color:var(--blue-pale);background:rgba(37,99,235,.15)}
+
+/* Search */
+.search-row{margin-bottom:12px}
+.search-row input{width:100%;background:var(--bg-card);color:var(--text);border:1px solid #334155;border-radius:var(--radius-sm);padding:10px 12px;font-size:.95rem;font-family:inherit}
+.search-row input::placeholder{color:var(--text-muted)}
+
+/* Box gallery */
+.box-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.box-card{background:var(--bg-card);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .15s}
+.box-card:active{background:var(--bg-card-hover)}
+.box-thumb{width:100%;aspect-ratio:1;object-fit:cover;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--text-muted)}
+.box-thumb img{width:100%;height:100%;object-fit:cover}
+.box-info{padding:10px}
+.box-number{font-weight:700;font-size:1rem;color:var(--coral)}
+.box-contents{font-size:.8rem;color:var(--text);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.box-room{font-size:.7rem;color:var(--text-muted);margin-top:4px}
+
+.camera-btn{display:block;width:100%;padding:14px;margin-top:12px;text-align:center;font-size:1rem}
+
+.empty-state{text-align:center;color:var(--text-muted);padding:40px 20px;font-size:.9rem}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg-card);border-radius:var(--radius);padding:24px;width:100%;max-width:400px;max-height:85vh;overflow-y:auto}
+.modal h2{font-size:1.2rem;margin-bottom:16px;color:var(--blue-pale)}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:.8rem;color:var(--text-muted);margin-bottom:4px;font-weight:500}
+.modal input,.modal select,.modal textarea{width:100%;background:#0f1720;color:var(--text);border:1px solid #334155;border-radius:var(--radius-sm);padding:10px 12px;font-size:.95rem;font-family:inherit}
+.modal textarea{min-height:80px;resize:vertical}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+
+/* Photo preview */
+.photo-preview{width:100%;max-height:200px;object-fit:contain;border-radius:var(--radius-sm);margin-bottom:12px;display:none}
+.photo-area{text-align:center;margin-bottom:12px}
+.photo-area .btn{margin:0 auto}
+
+/* Detail view */
+.detail-photo{width:100%;border-radius:var(--radius-sm);margin-bottom:12px}
+.detail-info{margin-bottom:8px}
+.detail-label{font-size:.75rem;color:var(--text-muted);font-weight:500}
+.detail-value{font-size:.95rem;margin-top:2px}
+
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#0d131b;border-top:1px solid #1e293b;display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);z-index:50}
+.bottom-nav a{flex:1;text-align:center;text-decoration:none;color:var(--text-muted);font-size:.7rem;font-weight:600;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .15s}
+.bottom-nav a.active{color:var(--blue-pale)}
+.bottom-nav a .nav-icon{font-size:1.3rem}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--success);color:#fff;padding:10px 20px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1}
+
+input[type="file"]{display:none}
+</style>
+</head>
+<body>
+
+<h1>Box Tracker</h1>
+<p class="subtitle">Snap it, label it, find it later</p>
+
+<div class="stats-row" id="statsRow"></div>
+
+<div class="search-row">
+  <input type="text" id="searchInput" placeholder="Search contents... (e.g. blender)" oninput="loadBoxes()">
+</div>
+
+<div class="box-grid" id="boxGrid"></div>
+<div class="empty-state" id="emptyState" style="display:none">No boxes yet. Start packing!</div>
+
+<input type="file" id="cameraInput" accept="image/*" capture="environment">
+<button class="btn btn-coral camera-btn" onclick="document.getElementById('cameraInput').click()">&#128247; Add Box</button>
+
+<!-- Add/Edit Box Modal -->
+<div class="modal-overlay" id="boxModal">
+  <div class="modal">
+    <h2 id="boxModalTitle">New Box</h2>
+    <img id="photoPreview" class="photo-preview">
+    <div class="photo-area" id="photoArea">
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('editCameraInput').click()">&#128247; Change Photo</button>
+      <input type="file" id="editCameraInput" accept="image/*" capture="environment">
+    </div>
+    <div class="form-group">
+      <label>Box #</label>
+      <input type="number" id="boxNumberInput" min="1">
+    </div>
+    <div class="form-group">
+      <label>What's in the box?</label>
+      <textarea id="boxContentsInput" placeholder="Pots, pans, cutting boards, spices..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Goes to which room?</label>
+      <select id="boxRoomInput"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('boxModal')">Cancel</button>
+      <button class="btn btn-blue btn-sm" onclick="saveBox()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Box Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <img id="detailPhoto" class="detail-photo" style="display:none">
+    <div class="detail-info">
+      <div class="detail-label">Box #</div>
+      <div class="detail-value" id="detailNumber" style="color:var(--coral);font-weight:700;font-size:1.2rem"></div>
+    </div>
+    <div class="detail-info">
+      <div class="detail-label">Contents</div>
+      <div class="detail-value" id="detailContents"></div>
+    </div>
+    <div class="detail-info">
+      <div class="detail-label">Destination Room</div>
+      <div class="detail-value" id="detailRoom"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" onclick="deleteCurrentBox()">Delete</button>
+      <button class="btn btn-outline btn-sm" onclick="editCurrentBox()">Edit</button>
+      <button class="btn btn-blue btn-sm" onclick="closeModal('detailModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="nav-icon">&#9776;</span>Lists</a>
+  <a href="timeline.html"><span class="nav-icon">&#128197;</span>Timeline</a>
+  <a href="boxes.html" class="active"><span class="nav-icon">&#128230;</span>Boxes</a>
+  <a href="budget.html"><span class="nav-icon">&#128176;</span>Budget</a>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<script>
+let db;
+let currentRoomFilter = 'all';
+let editingBoxId = null;
+let pendingPhotoBlob = null;
+let pendingThumbnail = null;
+let viewingBoxId = null;
+
+const IDB_NAME = 'MoveHelperStore';
+const IDB_STORE = 'meta';
+const IDB_BLOBS = 'blobs';
+const DB_KEY = 'move-helper-db';
+
+async function init() {
+  const SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${f}` });
+  const saved = await loadFromIDB();
+  if (saved) {
+    db = new SQL.Database(new Uint8Array(saved));
+  } else {
+    db = new SQL.Database();
+    db.run(`CREATE TABLE IF NOT EXISTS boxes (id INTEGER PRIMARY KEY AUTOINCREMENT, box_number INTEGER NOT NULL, contents TEXT DEFAULT '', destination_room TEXT DEFAULT '', thumbnail TEXT DEFAULT '', photo_key TEXT DEFAULT '', created_at TEXT DEFAULT (datetime('now')))`);
+    db.run(`CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, sort_order INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')))`);
+  }
+  loadRoomOptions();
+  loadStats();
+  loadBoxes();
+  setupCamera();
+}
+
+function loadRoomOptions() {
+  const sel = document.getElementById('boxRoomInput');
+  sel.innerHTML = '<option value="">-- Select room --</option>';
+  try {
+    const rows = db.exec('SELECT name FROM projects ORDER BY sort_order, id');
+    if (rows.length) {
+      rows[0].values.forEach(([name]) => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      });
+    }
+  } catch(e) {}
+  // Add "Other" option
+  const other = document.createElement('option');
+  other.value = 'Other';
+  other.textContent = 'Other';
+  sel.appendChild(other);
+}
+
+function loadStats() {
+  const container = document.getElementById('statsRow');
+  container.innerHTML = '';
+  const totalRows = db.exec('SELECT COUNT(*) FROM boxes');
+  const total = totalRows.length ? totalRows[0].values[0][0] : 0;
+
+  const allChip = document.createElement('button');
+  allChip.className = 'stat-chip' + (currentRoomFilter === 'all' ? ' active' : '');
+  allChip.textContent = `All (${total})`;
+  allChip.onclick = () => { currentRoomFilter = 'all'; loadStats(); loadBoxes(); };
+  container.appendChild(allChip);
+
+  const roomRows = db.exec('SELECT destination_room, COUNT(*) as cnt FROM boxes WHERE destination_room != "" GROUP BY destination_room ORDER BY cnt DESC');
+  if (roomRows.length) {
+    roomRows[0].values.forEach(([room, cnt]) => {
+      const chip = document.createElement('button');
+      chip.className = 'stat-chip' + (currentRoomFilter === room ? ' active' : '');
+      chip.textContent = `${room} (${cnt})`;
+      chip.onclick = () => { currentRoomFilter = room; loadStats(); loadBoxes(); };
+      container.appendChild(chip);
+    });
+  }
+}
+
+function loadBoxes() {
+  const search = document.getElementById('searchInput').value.trim().toLowerCase();
+  let sql = 'SELECT id, box_number, contents, destination_room, thumbnail FROM boxes WHERE 1=1';
+  const params = [];
+  if (currentRoomFilter !== 'all') {
+    sql += ' AND destination_room = ?';
+    params.push(currentRoomFilter);
+  }
+  if (search) {
+    sql += ' AND LOWER(contents) LIKE ?';
+    params.push('%' + search + '%');
+  }
+  sql += ' ORDER BY box_number DESC';
+  const rows = db.exec(sql, params);
+  const grid = document.getElementById('boxGrid');
+  const empty = document.getElementById('emptyState');
+  grid.innerHTML = '';
+  if (!rows.length || !rows[0].values.length) {
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  rows[0].values.forEach(([id, box_number, contents, destination_room, thumbnail]) => {
+    const card = document.createElement('div');
+    card.className = 'box-card';
+    card.onclick = () => openDetail(id);
+    card.innerHTML = `
+      <div class="box-thumb">${thumbnail ? `<img src="${thumbnail}" alt="Box ${box_number}">` : '&#128230;'}</div>
+      <div class="box-info">
+        <div class="box-number">Box #${box_number}</div>
+        <div class="box-contents">${esc(contents || 'No contents listed')}</div>
+        <div class="box-room">${esc(destination_room || 'No room assigned')}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function setupCamera() {
+  document.getElementById('cameraInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    editingBoxId = null;
+    const { blob, thumbnail } = await processPhoto(file);
+    pendingPhotoBlob = blob;
+    pendingThumbnail = thumbnail;
+    document.getElementById('photoPreview').src = thumbnail;
+    document.getElementById('photoPreview').style.display = '';
+    document.getElementById('boxModalTitle').textContent = 'New Box';
+    // Auto-increment box number
+    const maxRows = db.exec('SELECT MAX(box_number) FROM boxes');
+    const next = (maxRows.length && maxRows[0].values[0][0] !== null) ? maxRows[0].values[0][0] + 1 : 1;
+    document.getElementById('boxNumberInput').value = next;
+    document.getElementById('boxContentsInput').value = '';
+    document.getElementById('boxRoomInput').value = '';
+    loadRoomOptions();
+    document.getElementById('boxModal').classList.add('active');
+    e.target.value = '';
+  });
+
+  document.getElementById('editCameraInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const { blob, thumbnail } = await processPhoto(file);
+    pendingPhotoBlob = blob;
+    pendingThumbnail = thumbnail;
+    document.getElementById('photoPreview').src = thumbnail;
+    document.getElementById('photoPreview').style.display = '';
+    e.target.value = '';
+  });
+}
+
+async function processPhoto(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Full size (max 1200px)
+        const maxFull = 1200;
+        let fw = img.width, fh = img.height;
+        if (fw > maxFull || fh > maxFull) {
+          const ratio = Math.min(maxFull / fw, maxFull / fh);
+          fw = Math.round(fw * ratio);
+          fh = Math.round(fh * ratio);
+        }
+        const fc = document.createElement('canvas');
+        fc.width = fw; fc.height = fh;
+        fc.getContext('2d').drawImage(img, 0, 0, fw, fh);
+        fc.toBlob((blob) => {
+          // Thumbnail (300px)
+          const maxThumb = 300;
+          let tw = img.width, th = img.height;
+          const tRatio = Math.min(maxThumb / tw, maxThumb / th);
+          tw = Math.round(tw * tRatio);
+          th = Math.round(th * tRatio);
+          const tc = document.createElement('canvas');
+          tc.width = tw; tc.height = th;
+          tc.getContext('2d').drawImage(img, 0, 0, tw, th);
+          const thumbnail = tc.toDataURL('image/jpeg', 0.7);
+          resolve({ blob, thumbnail });
+        }, 'image/jpeg', 0.85);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveBox() {
+  const boxNum = parseInt(document.getElementById('boxNumberInput').value);
+  if (!boxNum || boxNum < 1) { toast('Enter a box number'); return; }
+  const contents = document.getElementById('boxContentsInput').value.trim();
+  const room = document.getElementById('boxRoomInput').value;
+
+  if (editingBoxId) {
+    const thumbnail = pendingThumbnail || document.getElementById('photoPreview').src || '';
+    db.run('UPDATE boxes SET box_number=?, contents=?, destination_room=?, thumbnail=? WHERE id=?', [boxNum, contents, room, thumbnail, editingBoxId]);
+    if (pendingPhotoBlob) {
+      const key = 'box-' + editingBoxId;
+      await saveBlobToIDB(key, pendingPhotoBlob);
+      db.run('UPDATE boxes SET photo_key=? WHERE id=?', [key, editingBoxId]);
+    }
+    toast('Box updated');
+  } else {
+    const thumbnail = pendingThumbnail || '';
+    db.run('INSERT INTO boxes (box_number, contents, destination_room, thumbnail) VALUES (?,?,?,?)', [boxNum, contents, room, thumbnail]);
+    const idRows = db.exec('SELECT last_insert_rowid()');
+    const newId = idRows[0].values[0][0];
+    if (pendingPhotoBlob) {
+      const key = 'box-' + newId;
+      await saveBlobToIDB(key, pendingPhotoBlob);
+      db.run('UPDATE boxes SET photo_key=? WHERE id=?', [key, newId]);
+    }
+    toast('Box added');
+  }
+  pendingPhotoBlob = null;
+  pendingThumbnail = null;
+  persistDB();
+  closeModal('boxModal');
+  loadStats();
+  loadBoxes();
+}
+
+async function openDetail(id) {
+  viewingBoxId = id;
+  const rows = db.exec('SELECT box_number, contents, destination_room, thumbnail, photo_key FROM boxes WHERE id=?', [id]);
+  if (!rows.length) return;
+  const [box_number, contents, destination_room, thumbnail, photo_key] = rows[0].values[0];
+  document.getElementById('detailNumber').textContent = '#' + box_number;
+  document.getElementById('detailContents').textContent = contents || 'No contents listed';
+  document.getElementById('detailRoom').textContent = destination_room || 'No room assigned';
+
+  const detailPhoto = document.getElementById('detailPhoto');
+  if (photo_key) {
+    const blob = await loadBlobFromIDB(photo_key);
+    if (blob) {
+      detailPhoto.src = URL.createObjectURL(blob);
+      detailPhoto.style.display = '';
+    } else if (thumbnail) {
+      detailPhoto.src = thumbnail;
+      detailPhoto.style.display = '';
+    } else {
+      detailPhoto.style.display = 'none';
+    }
+  } else if (thumbnail) {
+    detailPhoto.src = thumbnail;
+    detailPhoto.style.display = '';
+  } else {
+    detailPhoto.style.display = 'none';
+  }
+  document.getElementById('detailModal').classList.add('active');
+}
+
+function editCurrentBox() {
+  if (!viewingBoxId) return;
+  closeModal('detailModal');
+  editingBoxId = viewingBoxId;
+  pendingPhotoBlob = null;
+  pendingThumbnail = null;
+  const rows = db.exec('SELECT box_number, contents, destination_room, thumbnail FROM boxes WHERE id=?', [editingBoxId]);
+  if (!rows.length) return;
+  const [box_number, contents, destination_room, thumbnail] = rows[0].values[0];
+  document.getElementById('boxModalTitle').textContent = 'Edit Box #' + box_number;
+  document.getElementById('boxNumberInput').value = box_number;
+  document.getElementById('boxContentsInput').value = contents || '';
+  loadRoomOptions();
+  document.getElementById('boxRoomInput').value = destination_room || '';
+  if (thumbnail) {
+    document.getElementById('photoPreview').src = thumbnail;
+    document.getElementById('photoPreview').style.display = '';
+  } else {
+    document.getElementById('photoPreview').style.display = 'none';
+  }
+  document.getElementById('boxModal').classList.add('active');
+}
+
+async function deleteCurrentBox() {
+  if (!viewingBoxId) return;
+  if (!confirm('Delete this box?')) return;
+  const rows = db.exec('SELECT photo_key FROM boxes WHERE id=?', [viewingBoxId]);
+  if (rows.length && rows[0].values[0][0]) {
+    await deleteBlobFromIDB(rows[0].values[0][0]);
+  }
+  db.run('DELETE FROM boxes WHERE id=?', [viewingBoxId]);
+  persistDB();
+  closeModal('detailModal');
+  loadStats();
+  loadBoxes();
+  toast('Box deleted');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// IndexedDB
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 2);
+    req.onupgradeneeded = (e) => {
+      const idb = req.result;
+      if (!idb.objectStoreNames.contains(IDB_STORE)) idb.createObjectStore(IDB_STORE);
+      if (!idb.objectStoreNames.contains(IDB_BLOBS)) idb.createObjectStore(IDB_BLOBS);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function persistDB() {
+  const data = db.export();
+  const idb = await openIDB();
+  const tx = idb.transaction(IDB_STORE, 'readwrite');
+  tx.objectStore(IDB_STORE).put(data.buffer, DB_KEY);
+}
+async function loadFromIDB() {
+  try {
+    const idb = await openIDB();
+    return new Promise((resolve) => {
+      const tx = idb.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(DB_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch(e) { return null; }
+}
+async function saveBlobToIDB(key, blob) {
+  const idb = await openIDB();
+  const tx = idb.transaction(IDB_BLOBS, 'readwrite');
+  tx.objectStore(IDB_BLOBS).put(blob, key);
+}
+async function loadBlobFromIDB(key) {
+  try {
+    const idb = await openIDB();
+    return new Promise((resolve) => {
+      const tx = idb.transaction(IDB_BLOBS, 'readonly');
+      const req = tx.objectStore(IDB_BLOBS).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch(e) { return null; }
+}
+async function deleteBlobFromIDB(key) {
+  try {
+    const idb = await openIDB();
+    const tx = idb.transaction(IDB_BLOBS, 'readwrite');
+    tx.objectStore(IDB_BLOBS).delete(key);
+  } catch(e) {}
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+init();
+</script>
+</body>
+</html>

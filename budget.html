@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Move Helper - Budget</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#2563eb;--blue-dark:#1e40af;--blue-light:#3b82f6;--blue-pale:#93c5fd;
+  --coral:#f97316;--coral-dark:#ea580c;--coral-light:#fb923c;
+  --bg:#0f1720;--bg-card:#1a2535;--bg-card-hover:#223344;
+  --text:#e8edf2;--text-muted:#8899aa;
+  --success:#22c55e;--danger:#ef4444;
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;padding:0 16px 120px;min-height:100vh;-webkit-tap-highlight-color:transparent}
+h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);margin:20px 0 4px}
+.subtitle{text-align:center;color:var(--text-muted);font-size:.85rem;margin-bottom:16px}
+
+.btn{padding:10px 16px;border:none;border-radius:var(--radius-sm);font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .15s}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:active{background:var(--blue-dark)}
+.btn-coral{background:var(--coral);color:#fff}.btn-coral:active{background:var(--coral-dark)}
+.btn-outline{background:transparent;border:1.5px solid var(--blue);color:var(--blue-pale)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+
+/* Grand total */
+.grand-total{background:linear-gradient(135deg,var(--blue-dark),var(--blue));border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:16px}
+.grand-total .label{font-size:.8rem;color:rgba(255,255,255,.7);margin-bottom:4px}
+.grand-total .amount{font-size:2rem;font-weight:800;color:#fff}
+
+/* Category breakdown */
+.cat-breakdown{margin-bottom:16px}
+.cat-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.cat-color{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.cat-name{font-size:.85rem;flex:1;color:var(--text)}
+.cat-amount{font-size:.85rem;font-weight:600;color:var(--coral)}
+.cat-bar-wrap{width:100%;height:4px;background:#1e293b;border-radius:2px;margin-top:2px}
+.cat-bar{height:100%;border-radius:2px;transition:width .3s}
+
+/* Expense list */
+.expense-card{background:var(--bg-card);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s}
+.expense-card:active{background:var(--bg-card-hover)}
+.expense-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.expense-body{flex:1}
+.expense-vendor{font-size:.9rem;font-weight:500}
+.expense-meta{font-size:.75rem;color:var(--text-muted);margin-top:2px}
+.expense-amount{font-size:1rem;font-weight:700;color:var(--coral)}
+
+.add-btn{display:block;width:100%;padding:12px;margin-top:8px;text-align:center}
+.export-btn{display:block;width:100%;padding:10px;margin-top:8px;text-align:center}
+
+.empty-state{text-align:center;color:var(--text-muted);padding:40px 20px;font-size:.9rem}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg-card);border-radius:var(--radius);padding:24px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
+.modal h2{font-size:1.2rem;margin-bottom:16px;color:var(--blue-pale)}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:.8rem;color:var(--text-muted);margin-bottom:4px;font-weight:500}
+.modal input,.modal select,.modal textarea{width:100%;background:#0f1720;color:var(--text);border:1px solid #334155;border-radius:var(--radius-sm);padding:10px 12px;font-size:.95rem;font-family:inherit}
+.modal textarea{min-height:60px;resize:vertical}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#0d131b;border-top:1px solid #1e293b;display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);z-index:50}
+.bottom-nav a{flex:1;text-align:center;text-decoration:none;color:var(--text-muted);font-size:.7rem;font-weight:600;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .15s}
+.bottom-nav a.active{color:var(--blue-pale)}
+.bottom-nav a .nav-icon{font-size:1.3rem}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--success);color:#fff;padding:10px 20px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<h1>Moving Budget</h1>
+<p class="subtitle">Track every dollar</p>
+
+<div class="grand-total">
+  <div class="label">Total Spent</div>
+  <div class="amount" id="grandTotal">$0.00</div>
+</div>
+
+<div class="cat-breakdown" id="catBreakdown"></div>
+
+<div id="expenseList"></div>
+<div class="empty-state" id="emptyState" style="display:none">No expenses yet. Add your first one!</div>
+
+<button class="btn btn-coral add-btn" onclick="openAddModal()">+ Add Expense</button>
+<button class="btn btn-outline export-btn" onclick="exportCSV()">Export CSV</button>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="expenseModal">
+  <div class="modal">
+    <h2 id="modalTitle">Add Expense</h2>
+    <div class="form-group">
+      <label>Amount ($)</label>
+      <input type="number" id="amountInput" step="0.01" min="0" placeholder="0.00" inputmode="decimal">
+    </div>
+    <div class="form-group">
+      <label>Vendor / Description</label>
+      <input type="text" id="vendorInput" placeholder="Home Depot, U-Haul, etc.">
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="catInput">
+        <option>Movers</option>
+        <option>Supplies</option>
+        <option>Deposits</option>
+        <option>Repairs</option>
+        <option>Cleaning</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="dateInput">
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="notesInput" placeholder="Optional details..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('expenseModal')">Cancel</button>
+      <button class="btn btn-blue btn-sm" onclick="saveExpense()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="nav-icon">&#9776;</span>Lists</a>
+  <a href="timeline.html"><span class="nav-icon">&#128197;</span>Timeline</a>
+  <a href="boxes.html"><span class="nav-icon">&#128230;</span>Boxes</a>
+  <a href="budget.html" class="active"><span class="nav-icon">&#128176;</span>Budget</a>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<script>
+let db;
+let editingExpenseId = null;
+const IDB_NAME = 'MoveHelperStore';
+const IDB_STORE = 'meta';
+const DB_KEY = 'move-helper-db';
+
+const CAT_COLORS = {
+  'Movers': '#f97316',
+  'Supplies': '#8b5cf6',
+  'Deposits': '#06b6d4',
+  'Repairs': '#eab308',
+  'Cleaning': '#22c55e',
+  'Other': '#8899aa'
+};
+const CAT_ICONS = {
+  'Movers': '&#128666;',
+  'Supplies': '&#128230;',
+  'Deposits': '&#127968;',
+  'Repairs': '&#128295;',
+  'Cleaning': '&#129529;',
+  'Other': '&#128181;'
+};
+
+async function init() {
+  const SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${f}` });
+  const saved = await loadFromIDB();
+  if (saved) {
+    db = new SQL.Database(new Uint8Array(saved));
+  } else {
+    db = new SQL.Database();
+    db.run(`CREATE TABLE IF NOT EXISTS expenses (id INTEGER PRIMARY KEY AUTOINCREMENT, amount REAL NOT NULL, vendor TEXT DEFAULT '', category TEXT DEFAULT 'Other', expense_date TEXT DEFAULT '', notes TEXT DEFAULT '', created_at TEXT DEFAULT (datetime('now')))`);
+  }
+  loadExpenses();
+}
+
+function loadExpenses() {
+  // Grand total
+  const totalRows = db.exec('SELECT COALESCE(SUM(amount),0) FROM expenses');
+  const total = totalRows.length ? totalRows[0].values[0][0] : 0;
+  document.getElementById('grandTotal').textContent = '$' + total.toFixed(2);
+
+  // Category breakdown
+  const catRows = db.exec('SELECT category, SUM(amount) as total FROM expenses GROUP BY category ORDER BY total DESC');
+  const catContainer = document.getElementById('catBreakdown');
+  catContainer.innerHTML = '';
+  if (catRows.length && catRows[0].values.length) {
+    const maxCat = Math.max(...catRows[0].values.map(r => r[1]));
+    catRows[0].values.forEach(([cat, catTotal]) => {
+      const color = CAT_COLORS[cat] || '#8899aa';
+      const pct = maxCat > 0 ? (catTotal / maxCat) * 100 : 0;
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div class="cat-row">
+          <div class="cat-color" style="background:${color}"></div>
+          <span class="cat-name">${esc(cat)}</span>
+          <span class="cat-amount">$${catTotal.toFixed(2)}</span>
+        </div>
+        <div class="cat-bar-wrap"><div class="cat-bar" style="width:${pct}%;background:${color}"></div></div>
+      `;
+      catContainer.appendChild(div);
+    });
+  }
+
+  // Expense list
+  const rows = db.exec('SELECT id, amount, vendor, category, expense_date, notes FROM expenses ORDER BY expense_date DESC, id DESC');
+  const container = document.getElementById('expenseList');
+  const empty = document.getElementById('emptyState');
+  container.innerHTML = '';
+  if (!rows.length || !rows[0].values.length) {
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  rows[0].values.forEach(([id, amount, vendor, category, expense_date, notes]) => {
+    const color = CAT_COLORS[category] || '#8899aa';
+    const icon = CAT_ICONS[category] || '&#128181;';
+    const card = document.createElement('div');
+    card.className = 'expense-card';
+    card.onclick = () => openEditModal(id);
+    card.innerHTML = `
+      <div class="expense-icon" style="background:${color}22;color:${color}">${icon}</div>
+      <div class="expense-body">
+        <div class="expense-vendor">${esc(vendor || category)}</div>
+        <div class="expense-meta">${expense_date ? formatDate(expense_date) : 'No date'} &middot; ${esc(category)}${notes ? ' &middot; ' + esc(notes) : ''}</div>
+      </div>
+      <div class="expense-amount">$${amount.toFixed(2)}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function openAddModal() {
+  editingExpenseId = null;
+  document.getElementById('modalTitle').textContent = 'Add Expense';
+  document.getElementById('amountInput').value = '';
+  document.getElementById('vendorInput').value = '';
+  document.getElementById('catInput').value = 'Other';
+  document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+  document.getElementById('notesInput').value = '';
+  document.getElementById('expenseModal').classList.add('active');
+}
+
+function openEditModal(id) {
+  editingExpenseId = id;
+  const rows = db.exec('SELECT amount, vendor, category, expense_date, notes FROM expenses WHERE id=?', [id]);
+  if (!rows.length) return;
+  const [amount, vendor, category, expense_date, notes] = rows[0].values[0];
+  document.getElementById('modalTitle').textContent = 'Edit Expense';
+  document.getElementById('amountInput').value = amount;
+  document.getElementById('vendorInput').value = vendor || '';
+  document.getElementById('catInput').value = category;
+  document.getElementById('dateInput').value = expense_date || '';
+  document.getElementById('notesInput').value = notes || '';
+  document.getElementById('expenseModal').classList.add('active');
+}
+
+function saveExpense() {
+  const amount = parseFloat(document.getElementById('amountInput').value);
+  if (!amount || amount <= 0) { toast('Enter an amount'); return; }
+  const vendor = document.getElementById('vendorInput').value.trim();
+  const category = document.getElementById('catInput').value;
+  const date = document.getElementById('dateInput').value;
+  const notes = document.getElementById('notesInput').value.trim();
+  if (editingExpenseId) {
+    db.run('UPDATE expenses SET amount=?, vendor=?, category=?, expense_date=?, notes=? WHERE id=?', [amount, vendor, category, date, notes, editingExpenseId]);
+    toast('Expense updated');
+  } else {
+    db.run('INSERT INTO expenses (amount, vendor, category, expense_date, notes) VALUES (?,?,?,?,?)', [amount, vendor, category, date, notes]);
+    toast('Expense added');
+  }
+  persistDB();
+  closeModal('expenseModal');
+  loadExpenses();
+}
+
+function exportCSV() {
+  const rows = db.exec('SELECT expense_date, vendor, category, amount, notes FROM expenses ORDER BY expense_date, id');
+  if (!rows.length || !rows[0].values.length) { toast('No expenses to export'); return; }
+  let csv = 'Date,Vendor,Category,Amount,Notes\n';
+  rows[0].values.forEach(([date, vendor, cat, amount, notes]) => {
+    csv += `"${date || ''}","${(vendor || '').replace(/"/g,'""')}","${cat}",${amount.toFixed(2)},"${(notes || '').replace(/"/g,'""')}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'moving-expenses.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exported');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 2);
+    req.onupgradeneeded = (e) => {
+      const idb = req.result;
+      if (!idb.objectStoreNames.contains(IDB_STORE)) idb.createObjectStore(IDB_STORE);
+      if (!idb.objectStoreNames.contains('blobs')) idb.createObjectStore('blobs');
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function persistDB() {
+  const data = db.export();
+  const idb = await openIDB();
+  const tx = idb.transaction(IDB_STORE, 'readwrite');
+  tx.objectStore(IDB_STORE).put(data.buffer, DB_KEY);
+}
+async function loadFromIDB() {
+  try {
+    const idb = await openIDB();
+    return new Promise((resolve) => {
+      const tx = idb.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(DB_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch(e) { return null; }
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+init();
+</script>
+</body>
+</html>

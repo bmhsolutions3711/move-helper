@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Move Helper</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#2563eb;--blue-dark:#1e40af;--blue-light:#3b82f6;--blue-pale:#93c5fd;
+  --coral:#f97316;--coral-dark:#ea580c;--coral-light:#fb923c;
+  --bg:#0f1720;--bg-card:#1a2535;--bg-card-hover:#223344;
+  --text:#e8edf2;--text-muted:#8899aa;
+  --success:#22c55e;--danger:#ef4444;
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;padding:0 16px 120px;min-height:100vh;-webkit-tap-highlight-color:transparent}
+h1{text-align:center;font-size:1.6rem;font-weight:800;color:var(--blue-pale);margin:20px 0 4px}
+.subtitle{text-align:center;color:var(--text-muted);font-size:.85rem;margin-bottom:16px}
+
+/* Overall progress */
+.overall-progress{background:var(--bg-card);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.overall-progress .label{display:flex;justify-content:space-between;font-size:.85rem;color:var(--text-muted);margin-bottom:6px}
+.progress-bar{height:10px;background:#1e293b;border-radius:5px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--coral));border-radius:5px;transition:width .3s}
+
+/* Project selector */
+.project-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.project-row select{flex:1;background:var(--bg-card);color:var(--text);border:1px solid #334155;border-radius:var(--radius-sm);padding:10px 12px;font-size:.95rem;font-family:inherit}
+.btn{padding:10px 16px;border:none;border-radius:var(--radius-sm);font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .15s}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-blue:active{background:var(--blue-dark)}
+.btn-coral{background:var(--coral);color:#fff}
+.btn-coral:active{background:var(--coral-dark)}
+.btn-outline{background:transparent;border:1.5px solid var(--blue);color:var(--blue-pale)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+
+/* Project progress */
+.project-progress{margin-bottom:12px}
+.project-progress .label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-muted);margin-bottom:4px}
+.project-progress .progress-bar{height:6px}
+
+/* Task list */
+.task-list{list-style:none}
+.task-item{display:flex;align-items:center;gap:10px;background:var(--bg-card);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;transition:all .15s}
+.task-item.completed{opacity:.5}
+.task-item.completed .task-text{text-decoration:line-through}
+.task-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--blue);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.task-check.checked{background:var(--success);border-color:var(--success)}
+.task-check.checked::after{content:'';display:block;width:6px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-2px}
+.task-text{flex:1;font-size:.95rem;word-break:break-word}
+.task-notes{font-size:.75rem;color:var(--text-muted);margin-top:2px}
+.task-delete{background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.task-delete:active{color:var(--danger)}
+
+/* Add task */
+.add-task-row{display:flex;gap:8px;margin-top:8px;margin-bottom:12px}
+.add-task-row input{flex:1;background:var(--bg-card);color:var(--text);border:1px solid #334155;border-radius:var(--radius-sm);padding:10px 12px;font-size:.95rem;font-family:inherit}
+.add-task-row input::placeholder{color:var(--text-muted)}
+
+/* Empty state */
+.empty-state{text-align:center;color:var(--text-muted);padding:40px 20px;font-size:.9rem}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg-card);border-radius:var(--radius);padding:24px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
+.modal h2{font-size:1.2rem;margin-bottom:16px;color:var(--blue-pale)}
+.modal input,.modal textarea{width:100%;background:#0f1720;color:var(--text);border:1px solid #334155;border-radius:var(--radius-sm);padding:10px 12px;font-size:.95rem;font-family:inherit;margin-bottom:12px}
+.modal textarea{min-height:60px;resize:vertical}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+
+/* Project list in modal */
+.project-list-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1e293b}
+.project-list-item:last-child{border:none}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#0d131b;border-top:1px solid #1e293b;display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);z-index:50}
+.bottom-nav a{flex:1;text-align:center;text-decoration:none;color:var(--text-muted);font-size:.7rem;font-weight:600;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .15s}
+.bottom-nav a.active{color:var(--blue-pale)}
+.bottom-nav a .nav-icon{font-size:1.3rem}
+
+/* Toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--success);color:#fff;padding:10px 20px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<h1>Move Helper</h1>
+<p class="subtitle">Let's get you moved in!</p>
+
+<div class="overall-progress">
+  <div class="label"><span>Overall Progress</span><span id="overallPct">0%</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="overallFill" style="width:0%"></div></div>
+</div>
+
+<div class="project-row">
+  <select id="projectSelect"></select>
+  <button class="btn btn-blue btn-sm" onclick="openProjectsModal()">Projects</button>
+</div>
+
+<div class="project-progress" id="projectProgress">
+  <div class="label"><span id="projLabel">0 tasks</span><span id="projPct">0%</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="projFill" style="width:0%"></div></div>
+</div>
+
+<ul class="task-list" id="taskList"></ul>
+<div class="empty-state" id="emptyState" style="display:none">No tasks yet. Add one below!</div>
+
+<div class="add-task-row">
+  <input type="text" id="newTaskInput" placeholder="Add a task..." autocomplete="off">
+  <button class="btn btn-coral btn-sm" onclick="addTask()">+</button>
+</div>
+
+<!-- Edit Task Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>Edit Task</h2>
+    <input type="text" id="editTaskText" placeholder="Task name">
+    <textarea id="editTaskNotes" placeholder="Notes (optional)"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-blue btn-sm" onclick="saveEditTask()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Projects Modal -->
+<div class="modal-overlay" id="projectsModal">
+  <div class="modal">
+    <h2>Manage Projects</h2>
+    <div id="projectsList"></div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <input type="text" id="newProjectInput" placeholder="New project name...">
+      <button class="btn btn-coral btn-sm" onclick="addProject()">Add</button>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('projectsModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="active"><span class="nav-icon">&#9776;</span>Lists</a>
+  <a href="timeline.html"><span class="nav-icon">&#128197;</span>Timeline</a>
+  <a href="boxes.html"><span class="nav-icon">&#128230;</span>Boxes</a>
+  <a href="budget.html"><span class="nav-icon">&#128176;</span>Budget</a>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<script>
+let db;
+let editingTaskId = null;
+const IDB_NAME = 'MoveHelperStore';
+const IDB_STORE = 'meta';
+const DB_KEY = 'move-helper-db';
+
+const DEFAULT_PROJECTS = ['Kitchen','Living Room','Master Bedroom','Bathroom(s)','Garage / Storage','Utilities & Address Changes','Moving Day Tasks'];
+
+async function init() {
+  const SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${f}` });
+  const saved = await loadFromIDB();
+  if (saved) {
+    db = new SQL.Database(new Uint8Array(saved));
+    runMigrations();
+  } else {
+    db = new SQL.Database();
+    createTables();
+    seedData();
+  }
+  loadProjects();
+  updateOverallProgress();
+}
+
+function createTables() {
+  db.run(`CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, sort_order INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')))`);
+  db.run(`CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL, text TEXT NOT NULL, notes TEXT DEFAULT '', completed INTEGER DEFAULT 0, sort_order INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')), FOREIGN KEY (project_id) REFERENCES projects(id))`);
+  db.run(`CREATE TABLE IF NOT EXISTS timeline_events (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, event_date TEXT NOT NULL, category TEXT DEFAULT 'Other', completed INTEGER DEFAULT 0, notes TEXT DEFAULT '', created_at TEXT DEFAULT (datetime('now')))`);
+  db.run(`CREATE TABLE IF NOT EXISTS boxes (id INTEGER PRIMARY KEY AUTOINCREMENT, box_number INTEGER NOT NULL, contents TEXT DEFAULT '', destination_room TEXT DEFAULT '', thumbnail TEXT DEFAULT '', photo_key TEXT DEFAULT '', created_at TEXT DEFAULT (datetime('now')))`);
+  db.run(`CREATE TABLE IF NOT EXISTS expenses (id INTEGER PRIMARY KEY AUTOINCREMENT, amount REAL NOT NULL, vendor TEXT DEFAULT '', category TEXT DEFAULT 'Other', expense_date TEXT DEFAULT '', notes TEXT DEFAULT '', created_at TEXT DEFAULT (datetime('now')))`);
+}
+
+function runMigrations() {
+  try { db.run(`SELECT 1 FROM projects LIMIT 1`); } catch(e) { createTables(); seedData(); }
+}
+
+function seedData() {
+  DEFAULT_PROJECTS.forEach((name, i) => {
+    db.run('INSERT INTO projects (name, sort_order) VALUES (?, ?)', [name, i]);
+  });
+  const timelineSeeds = [
+    ['Forward mail (USPS)','','Paperwork'],
+    ['Transfer electric','','Utilities'],
+    ['Transfer water','','Utilities'],
+    ['Transfer internet/cable','','Utilities'],
+    ['Update address - bank','','Paperwork'],
+    ['Update address - insurance','','Paperwork'],
+    ['Update address - DMV','','Paperwork'],
+    ['Schedule movers','','Moving Day'],
+    ['Final walkthrough - old house','','Moving Day'],
+    ['Final walkthrough - new house','','Moving Day']
+  ];
+  timelineSeeds.forEach(([title, date, cat]) => {
+    db.run('INSERT INTO timeline_events (title, event_date, category) VALUES (?, ?, ?)', [title, date, cat]);
+  });
+  persistDB();
+}
+
+function loadProjects() {
+  const sel = document.getElementById('projectSelect');
+  const rows = db.exec('SELECT id, name FROM projects ORDER BY sort_order, id');
+  sel.innerHTML = '';
+  if (rows.length && rows[0].values.length) {
+    rows[0].values.forEach(([id, name]) => {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  }
+  const last = localStorage.getItem('mh_last_project');
+  if (last && sel.querySelector(`option[value="${last}"]`)) sel.value = last;
+  sel.onchange = () => { localStorage.setItem('mh_last_project', sel.value); loadTasks(); };
+  loadTasks();
+}
+
+function loadTasks() {
+  const pid = document.getElementById('projectSelect').value;
+  if (!pid) return;
+  const rows = db.exec('SELECT id, text, notes, completed FROM tasks WHERE project_id = ? ORDER BY completed, sort_order, id', [pid]);
+  const list = document.getElementById('taskList');
+  const empty = document.getElementById('emptyState');
+  list.innerHTML = '';
+  if (!rows.length || !rows[0].values.length) {
+    empty.style.display = '';
+    updateProjectProgress(0, 0);
+    return;
+  }
+  empty.style.display = 'none';
+  let total = 0, done = 0;
+  rows[0].values.forEach(([id, text, notes, completed]) => {
+    total++;
+    if (completed) done++;
+    const li = document.createElement('li');
+    li.className = 'task-item' + (completed ? ' completed' : '');
+    li.innerHTML = `
+      <div class="task-check ${completed ? 'checked' : ''}" onclick="toggleTask(${id}, ${completed ? 0 : 1})"></div>
+      <div style="flex:1;cursor:pointer" onclick="openEditTask(${id})">
+        <div class="task-text">${esc(text)}</div>
+        ${notes ? `<div class="task-notes">${esc(notes)}</div>` : ''}
+      </div>
+      <button class="task-delete" onclick="deleteTask(${id})">&#10005;</button>
+    `;
+    list.appendChild(li);
+  });
+  updateProjectProgress(done, total);
+}
+
+function updateProjectProgress(done, total) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('projLabel').textContent = `${done} of ${total} tasks`;
+  document.getElementById('projPct').textContent = pct + '%';
+  document.getElementById('projFill').style.width = pct + '%';
+  updateOverallProgress();
+}
+
+function updateOverallProgress() {
+  const rows = db.exec('SELECT COUNT(*) as total, SUM(CASE WHEN completed=1 THEN 1 ELSE 0 END) as done FROM tasks');
+  let total = 0, done = 0;
+  if (rows.length && rows[0].values.length) {
+    total = rows[0].values[0][0] || 0;
+    done = rows[0].values[0][1] || 0;
+  }
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('overallPct').textContent = pct + '%';
+  document.getElementById('overallFill').style.width = pct + '%';
+}
+
+function addTask() {
+  const input = document.getElementById('newTaskInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const pid = document.getElementById('projectSelect').value;
+  if (!pid) return;
+  const maxOrder = db.exec('SELECT MAX(sort_order) FROM tasks WHERE project_id = ?', [pid]);
+  const next = (maxOrder.length && maxOrder[0].values[0][0] !== null) ? maxOrder[0].values[0][0] + 1 : 0;
+  db.run('INSERT INTO tasks (project_id, text, sort_order) VALUES (?, ?, ?)', [pid, text, next]);
+  persistDB();
+  input.value = '';
+  loadTasks();
+  toast('Task added');
+}
+
+function toggleTask(id, val) {
+  db.run('UPDATE tasks SET completed = ? WHERE id = ?', [val, id]);
+  persistDB();
+  loadTasks();
+}
+
+function deleteTask(id) {
+  db.run('DELETE FROM tasks WHERE id = ?', [id]);
+  persistDB();
+  loadTasks();
+  toast('Task deleted');
+}
+
+function openEditTask(id) {
+  editingTaskId = id;
+  const rows = db.exec('SELECT text, notes FROM tasks WHERE id = ?', [id]);
+  if (!rows.length) return;
+  document.getElementById('editTaskText').value = rows[0].values[0][0];
+  document.getElementById('editTaskNotes').value = rows[0].values[0][1] || '';
+  document.getElementById('editModal').classList.add('active');
+}
+
+function saveEditTask() {
+  if (!editingTaskId) return;
+  const text = document.getElementById('editTaskText').value.trim();
+  const notes = document.getElementById('editTaskNotes').value.trim();
+  if (!text) return;
+  db.run('UPDATE tasks SET text = ?, notes = ? WHERE id = ?', [text, notes, editingTaskId]);
+  persistDB();
+  closeModal('editModal');
+  loadTasks();
+  toast('Task updated');
+}
+
+function openProjectsModal() {
+  const rows = db.exec('SELECT id, name FROM projects ORDER BY sort_order, id');
+  const container = document.getElementById('projectsList');
+  container.innerHTML = '';
+  if (rows.length && rows[0].values.length) {
+    rows[0].values.forEach(([id, name]) => {
+      const div = document.createElement('div');
+      div.className = 'project-list-item';
+      div.innerHTML = `<span>${esc(name)}</span><button class="btn btn-danger btn-sm" onclick="deleteProject(${id})">Delete</button>`;
+      container.appendChild(div);
+    });
+  }
+  document.getElementById('projectsModal').classList.add('active');
+}
+
+function addProject() {
+  const input = document.getElementById('newProjectInput');
+  const name = input.value.trim();
+  if (!name) return;
+  const maxOrder = db.exec('SELECT MAX(sort_order) FROM projects');
+  const next = (maxOrder.length && maxOrder[0].values[0][0] !== null) ? maxOrder[0].values[0][0] + 1 : 0;
+  db.run('INSERT INTO projects (name, sort_order) VALUES (?, ?)', [name, next]);
+  persistDB();
+  input.value = '';
+  loadProjects();
+  openProjectsModal();
+  toast('Project added');
+}
+
+function deleteProject(id) {
+  if (!confirm('Delete this project and all its tasks?')) return;
+  db.run('DELETE FROM tasks WHERE project_id = ?', [id]);
+  db.run('DELETE FROM projects WHERE id = ?', [id]);
+  persistDB();
+  loadProjects();
+  openProjectsModal();
+  toast('Project deleted');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// Enter key for add task
+document.getElementById('newTaskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+// IndexedDB persistence
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 2);
+    req.onupgradeneeded = (e) => {
+      const idb = req.result;
+      if (!idb.objectStoreNames.contains(IDB_STORE)) idb.createObjectStore(IDB_STORE);
+      if (!idb.objectStoreNames.contains('blobs')) idb.createObjectStore('blobs');
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function persistDB() {
+  const data = db.export();
+  const idb = await openIDB();
+  const tx = idb.transaction(IDB_STORE, 'readwrite');
+  tx.objectStore(IDB_STORE).put(data.buffer, DB_KEY);
+}
+async function loadFromIDB() {
+  try {
+    const idb = await openIDB();
+    return new Promise((resolve) => {
+      const tx = idb.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(DB_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch(e) { return null; }
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+// Register SW
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+init();
+</script>
+</body>
+</html>
