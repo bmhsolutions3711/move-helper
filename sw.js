@@ -1,4 +1,4 @@
-const CACHE_NAME = 'move-helper-v1';
+const CACHE_NAME = 'move-helper-v2';
 const ASSETS = [
   '/move-helper/index.html',
   '/move-helper/timeline.html',
