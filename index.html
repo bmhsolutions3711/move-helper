@@ -115,9 +115,12 @@
 
 <!-- Data Sync -->
 <div style="text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid #1e293b">
-  <button class="btn btn-outline btn-sm" onclick="exportAllData()" style="margin-right:6px">Export Data</button>
-  <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">Import Data</button>
-  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this.files[0])">
+  <button class="btn btn-coral btn-sm" onclick="exportSummaryHTML()" style="margin-bottom:8px;width:100%">Export Summary</button>
+  <div>
+    <button class="btn btn-outline btn-sm" onclick="exportAllData()" style="margin-right:6px">Export Data</button>
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">Import Data</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this.files[0])">
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
